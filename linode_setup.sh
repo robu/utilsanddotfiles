@@ -150,11 +150,11 @@ END_OF_SCRIPT
 }
 
 function generate_install_java {
-echo "Generating installation of Sun JDK version 5 and 6 (and Ant, while we're at it)."
+echo "Generating installation of Sun JDK version 5 and 6 (and Ant, Maven 2 and Tomcat 6, while we're at it)."
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # Java
-apt-get -qq -y install sun-java6-jdk sun-java5-jdk ant ant-optional
+apt-get -qq -y install sun-java6-jdk sun-java5-jdk ant ant-optional tomcat6 maven2
 END_OF_SCRIPT
 }
 
