@@ -7,11 +7,7 @@ function yesno {
   if test -n "${yesno_response_in}" ; then let yesno_response=yesno_response_in ; fi
   YESNO_RESPONSE="N"
   case $yesno_response in 
-    Y) YESNO_RESPONSE="Y";;
-    y) YESNO_RESPONSE="Y";;
-    YES) YESNO_RESPONSE="Y";;
-    yes) YESNO_RESPONSE="Y";;
-    Yes) YESNO_RESPONSE="Y";;
+    [Yy]*) YESNO_RESPONSE="Y";;
   esac
 }
 
@@ -224,7 +220,6 @@ IFS="$OLD_IFS"
 IP=$(host $FQDN | awk '{print $4}' | head -1)
 echo -n "IP Address ($IP): "
 read IP_IN
-
 if test -n "$IP_IN" ; then let IP=IP_IN ; fi
 
 SSH_KEYPATH=~/.ssh/id_rsa.pub
@@ -233,17 +228,15 @@ read SSH_KEYPATH_IN
 
 if test -n "$SSH_KEYPATH_IN" ; then let SSH_KEYPATH=SSH_KEYPATH_IN ; fi
 
-if [ ! -e $SSH_KEYPATH } ; 
+# if [ ! -e $SSH_KEYPATH } ; 
 
 SSH_KEY=$(cat $SSH_KEYPATH)
-#echo $SSH_KEY
-
 
 SCRIPT_FILE="./linode_ubuntu_setup_${FQDN}_$(date +%Y%m%d_%H%M).sh"
 echo -n "Name of generated setup script ($SCRIPT_FILE): "
 read SCRIPT_FILE_IN
-
 if test -n "$SCRIPT_FILE_IN" ; then let SCRIPT_FILE=SCRIPT_FILE_IN ; fi
+
 touch $SCRIPT_FILE
 chmod a+x $SCRIPT_FILE
 
