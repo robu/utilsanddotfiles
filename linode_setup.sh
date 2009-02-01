@@ -113,6 +113,8 @@ END_OF_SCRIPT
 }
 
 function generate_user {
+local KEY_LOGIN="Y"
+if [ -z $SSH_KEY ] ; then KEY_LOGIN="N" ; fi
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # setup user
@@ -122,6 +124,10 @@ echo -e "\n# Members of the admin group may gain root privileges" >> /etc/sudoer
 echo "%admin ALL=(ALL) ALL" >> /etc/sudoers
 echo "\$USERNAME::1000:\$USERNAME::/home/\$USERNAME:/bin/bash" | newusers
 adduser \$USERNAME admin
+END_OF_SCRIPT
+
+if [ $KEY_LOGIN == "Y" ] ; then
+cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 mkdir -p /home/\$USERNAME/.ssh
 touch /home/\$USERNAME/.ssh/authorized_keys
 echo "\$SSH_KEY" > /home/\$USERNAME/.ssh/authorized_keys
@@ -136,6 +142,10 @@ then sed -i.bak -r s/.*PermitRootLogin.*/PermitRootLogin\ no/g /etc/ssh/sshd_con
 else echo "PermitRootLogin no" >> /etc/ssh/sshd_config ;
 fi
 /etc/init.d/ssh restart
+END_OF_SCRIPT
+fi
+
+cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 echo "- Done setting up user"
 END_OF_SCRIPT
 }
@@ -176,12 +186,16 @@ cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # Ruby
 echo "Installing Ruby platform"
-apt-get -qq -y install ruby-full libmysql-ruby 
+apt-get -qq -y install ruby-full 
+# we leave out the package and get the gem instead: libmysql-ruby 
 # not sure if we want to apt-get rubygems or get it manually
-# apt-get -qq -y install rubygems
-# gem update --system
+apt-get -qq -y install rubygems
+gem update --system
+gem install rake
+gem install mysql
+gem install rails
 
-# Passenger (aka mod_rails). This will also include apache2
+# Passenger (aka mod_rails). This will also include apache2, if necessary.
 # Need to add the brightbox gpg key before installing
 echo "deb http://apt.brightbox.net intrepid main" >> /etc/apt/sources.list
 wget http://apt.brightbox.net/release.asc -O - | apt-key add -
@@ -246,6 +260,8 @@ echo -n "IP Address ($IP): "
 read IP_IN
 if test -n "$IP_IN" ; then let IP=IP_IN ; fi
 
+yesno "Do you want to setup public key authorization for ssh (recommended!)?"
+if [ $YESNO_RESPONSE == "Y" ] ; then
 SSH_KEYPATH=~/.ssh/id_rsa.pub
 echo -n "Path to public SSH key ($SSH_KEYPATH): "
 read SSH_KEYPATH_IN
@@ -255,6 +271,7 @@ if test -n "$SSH_KEYPATH_IN" ; then let SSH_KEYPATH=SSH_KEYPATH_IN ; fi
 # if [ ! -e $SSH_KEYPATH } ; 
 
 SSH_KEY=$(cat $SSH_KEYPATH)
+fi
 
 SCRIPT_FILE="./linode_ubuntu_setup_${FQDN}_$(date +%Y%m%d_%H%M).sh"
 echo -n "Name of generated setup script ($SCRIPT_FILE): "
@@ -275,7 +292,6 @@ INSTALL_JAVA=$YESNO_RESPONSE
 
 yesno "Install Ruby environment?"
 INSTALL_RUBY=$YESNO_RESPONSE
-
 
 echo "============================================================================================"
 echo "="
@@ -299,7 +315,6 @@ echo "= Phase 3: Execute script on $FQDN"
 echo ""
 yesno "Do you want to transfer the script to $FQDN and run it there?"
 if [ $YESNO_RESPONSE == "Y" ] ; then transfer_and_execute_script ; fi
-
 
 echo "= Done!"
 echo "============================================================================================"
