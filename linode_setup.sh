@@ -191,6 +191,16 @@ echo "- Done installing Ruby platform"
 END_OF_SCRIPT
 }
 
+function generate_postamble {
+echo "Generating postamble (end of script)."
+cat >> $SCRIPT_FILE <<END_OF_SCRIPT
+
+echo "- Done setting up system"
+echo "Please note that you should now change the password for the admin user (\$USERNAME)"
+echo "Do this immediately by typing: passwd \$USERNAME"
+END_OF_SCRIPT
+}
+
 function transfer_and_execute_script {
   echo "The generated script will be scp-copied to root@$FQDN. Because of this, "
   echo "the scp program will ask you your root password for $FQDN."
@@ -280,6 +290,7 @@ generate_user
 generate_install_basic_tools
 if [ "$INSTALL_JAVA" == "Y" ] ; then generate_install_java ; fi
 if [ "$INSTALL_RUBY" == "Y" ] ; then generate_install_ruby ; fi
+generate_postamble
 echo "Done generating script."
 
 echo "============================================================================================"
