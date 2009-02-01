@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function yesno {
-  yesno_response="yes"
+  local yesno_response="yes"
   echo -n "$1 ($yesno_response): "
   read yesno_response_in
   if test -n "${yesno_response_in}" ; then let yesno_response=yesno_response_in ; fi
@@ -33,8 +33,10 @@ SSH_KEY="$SSH_KEY"
 # 
 # Make sure we're fully updated
 #
+echo "Performing full system upgrade. This may take a while..."
 apt-get -qq update
 apt-get -qq -y dist-upgrade
+echo "- Done with system upgrade."
 END_OF_SCRIPT
 }
 
@@ -43,6 +45,7 @@ echo "Generating iptables setup."
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # Firewall, installation
+echo "Installing and setting up iptables firewall"
 apt-get -qq -y install iptables
 
 # Firewall, setting up (reference: https://help.ubuntu.com/community/IptablesHowTo)
@@ -82,6 +85,7 @@ cat << EOF > /etc/network/if-post-down.d/iptables
 iptables-save -c > /etc/iptables.rules
 EOF
 chmod a+x /etc/network/if-post-down.d/iptables
+echo "- Done installing iptables firewall"
 END_OF_SCRIPT
 }
 
@@ -99,10 +103,12 @@ function generate_hostname {
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # Hostname
+echo "Setting up hostname and /etc/hosts"
 hostname \$HOSTNAME
 hostname > /etc/hostname
-echo "     \$HOSTNAME" | cat - /etc/hosts > /etc/hosts.new
+echo "\$IPADDRESS     \$HOSTNAME \$FQDN" | cat - /etc/hosts > /etc/hosts.new
 mv /etc/hosts.new /etc/hosts
+echo "- Done setting up hostname and /etc/hosts"
 END_OF_SCRIPT
 }
 
@@ -110,6 +116,7 @@ function generate_user {
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # setup user
+echo "Setting up user \$USERNAME as sudo user"
 addgroup admin
 echo -e "\n# Members of the admin group may gain root privileges" >> /etc/sudoers
 echo "%admin ALL=(ALL) ALL" >> /etc/sudoers
@@ -129,12 +136,14 @@ then sed -i.bak -r s/.*PermitRootLogin.*/PermitRootLogin\ no/g /etc/ssh/sshd_con
 else echo "PermitRootLogin no" >> /etc/ssh/sshd_config ;
 fi
 /etc/init.d/ssh restart
+echo "- Done setting up user"
 END_OF_SCRIPT
 }
 
 function generate_install_basic_tools {
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
+echo "Installing basic tools"
 # Basic tools, installation
 apt-get -qq -y install emacs screen wget unzip mailx rsync man
 
@@ -146,6 +155,7 @@ apt-get -qq -y install mysql-server
 
 # Version control
 apt-get -qq -y install git-core subversion cvs
+echo "- Done installing basic tools"
 END_OF_SCRIPT
 }
 
@@ -154,7 +164,9 @@ echo "Generating installation of Sun JDK version 5 and 6 (and Ant, Maven 2 and T
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # Java
+echo "Installing Java tools"
 apt-get -qq -y install sun-java6-jdk sun-java5-jdk ant ant-optional tomcat6 maven2
+echo "- Done installing Java tools"
 END_OF_SCRIPT
 }
 
@@ -163,6 +175,7 @@ echo "Generating installation of Ruby packages."
 cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # Ruby
+echo "Installing Ruby platform"
 apt-get -qq -y install ruby-full libmysql-ruby 
 # not sure if we want to apt-get rubygems or get it manually
 # apt-get -qq -y install rubygems
@@ -174,13 +187,14 @@ echo "deb http://apt.brightbox.net intrepid main" >> /etc/apt/sources.list
 wget http://apt.brightbox.net/release.asc -O - | apt-key add -
 apt-get -qq update
 apt-get -qq -y install libapache2-mod-passenger
+echo "- Done installing Ruby platform"
 END_OF_SCRIPT
 }
 
 function transfer_and_execute_script {
   echo "The generated script will be scp-copied to root@$FQDN. Because of this, "
   echo "the scp program will ask you your root password for $FQDN."
-  echo "scp $SCRIPT_FILE root@$FQDN:"
+  scp $SCRIPT_FILE root@$FQDN:
   echo "The script is now copied to root's home directory at $FQDN."
   echo "Now just log in as root@$FQDN and run it there. It can't be run from remote, "
   echo "since it will ask you a handful of questions when installing certain packages."
@@ -275,5 +289,7 @@ echo ""
 yesno "Do you want to transfer the script to $FQDN and run it there?"
 if [ $YESNO_RESPONSE == "Y" ] ; then transfer_and_execute_script ; fi
 
-echo Done
+
+echo "= Done!"
+echo "============================================================================================"
 
