@@ -106,7 +106,7 @@ cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 echo "Setting up hostname and /etc/hosts"
 hostname \$HOSTNAME
 hostname > /etc/hostname
-echo "\$IPADDRESS     \$HOSTNAME \$FQDN" | cat - /etc/hosts > /etc/hosts.new
+echo "\$IPADDRESS     \$FQDN \$HOSTNAME" | cat - /etc/hosts > /etc/hosts.new
 mv /etc/hosts.new /etc/hosts
 echo "- Done setting up hostname and /etc/hosts"
 END_OF_SCRIPT
