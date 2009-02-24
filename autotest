@@ -1,0 +1,19 @@
+require 'autotest/redgreen'
+
+module Autotest::Mumbles
+  def self.mumbles title, msg
+    system "mumbles-send \"#{title}\" \"#{msg}\""
+  end
+
+  Autotest.add_hook :red do |at|
+    errors = at.files_to_test.map { |k, v| "#{k}:\n #{v.join("\n ")}"}.join("\n\n")
+    mumbles "TESTS FAILED", errors
+  end
+
+  Autotest.add_hook :green do |at|
+    #res = at.results[/\d+ tests.*$/]
+    res = at.results.scan(/Finished.*failures/m).to_s.gsub(/\e\[32m/,'')
+    mumbles "TESTS PASSED", res
+  end
+end
+
