@@ -186,7 +186,8 @@ cat >> $SCRIPT_FILE <<END_OF_SCRIPT
 
 # Ruby
 echo "Installing Ruby platform"
-apt-get -qq -y install ruby-full 
+apt-get -qq -y install ruby-full
+apt-get -qq -y install mysql-client libmysqlclient16-dev
 # we leave out the package and get the gem instead: libmysql-ruby 
 # not sure if we want to apt-get rubygems or get it manually
 apt-get -qq -y install rubygems
@@ -197,9 +198,6 @@ gem install rails
 
 # Passenger (aka mod_rails). This will also include apache2, if necessary.
 # Need to add the brightbox gpg key before installing
-echo "deb http://apt.brightbox.net intrepid main" >> /etc/apt/sources.list
-wget http://apt.brightbox.net/release.asc -O - | apt-key add -
-apt-get -qq update
 apt-get -qq -y install libapache2-mod-passenger
 echo "- Done installing Ruby platform"
 END_OF_SCRIPT
