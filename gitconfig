@@ -10,3 +10,6 @@
   df = diff
   lg = log -p
   
+[color]
+  ui = auto
+
