@@ -1,0 +1,2 @@
+# ~/.railsrc
+-T -m https://raw.github.com/robu/rails-templates/master/robert/starter.rb
