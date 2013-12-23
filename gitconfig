@@ -9,6 +9,7 @@
   co = checkout
   df = diff
   lg = log -p
+  l = log --oneline
   
 [color]
   ui = auto
