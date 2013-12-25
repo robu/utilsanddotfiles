@@ -1,6 +1,9 @@
 [user]
   email = robert@buren.se
   name = Robert Buren
+
+[push]
+  default = simple
 	
 [alias]
   st = status
