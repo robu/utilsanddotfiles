@@ -1,0 +1,5 @@
+# to be copied to ~/.gemrc
+
+# this disables downloading of local docs for gems
+gem: --no-ri --no-rdoc
+
